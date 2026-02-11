@@ -1,0 +1,474 @@
+---
+alwaysApply: true
+---
+
+# Project Coding Standards & Best Practices
+
+## 1. Project Context
+
+- Next.js 16 with React 19
+- TypeScript (strict mode enabled)
+- Tailwind CSS v4
+- RTL-first application (Hebrew primary language)
+- Path aliases: `@/*` maps to `./src/*`
+
+## 2. Asset Organization & Naming
+
+- NO hash-based or generic names (e.g., `rectangle-26.png`)
+- File naming: `descriptive-purpose.format` (e.g., `love-letter-envelope.png`)
+- BEFORE ADDING NEW IMAGES: Always check if we already have the same/similar asset - search existing assets first
+- Only add new assets if they don't already exist in the project
+- Verify all imports/refs when renaming assets
+- Check for unused assets before deleting
+
+## 3. TypeScript Conventions & Best Practices
+
+**Strict Mode (REQUIRED):**
+
+- Always use `strict: true` in tsconfig.json
+- Enable `noImplicitAny` - never allow implicit `any` types
+- Use `strictNullChecks` - always handle null/undefined explicitly
+- Use explicit type annotations for function parameters and return types when inference isn't clear
+- Avoid `any` type - use `unknown` if type is truly unknown, then narrow with type guards
+- Use type assertions sparingly and prefer type guards: `if (x is Type) { ... }`
+
+**Type Definitions:**
+
+- Prefer `interface` for object shapes and component props
+- Use `type` for unions, intersections, and computed types
+- Define types close to where they're used (co-location principle)
+- Use path aliases: `@/components/`, `@/config/`, `@/utils/`
+- Export types/interfaces explicitly for reusability
+- Use `const` assertions: `as const` for literal types
+- Use discriminated unions for state management
+- Prefer `readonly` for immutable data structures
+
+**Performance:**
+
+- Avoid type-only imports when possible: use `import type { ... }` for type-only imports
+- Use `satisfies` operator for type checking without widening: `const config = { ... } satisfies ConfigType`
+- Leverage TypeScript's type inference - don't over-annotate
+- Use branded types for runtime validation: `type UserId = string & { __brand: 'UserId' }`
+
+## 4. React 19 Best Practices
+
+**React 19 Patterns:**
+
+- Use new `use` hook for async operations (if available in version)
+- Prefer Server Actions for mutations over API routes when possible
+- Use `React.cache()` for request memoization in Server Components
+- Leverage React Server Components for zero-bundle-size components
+- Use Suspense boundaries for loading states
+
+**Component Patterns:**
+
+- Component naming: PascalCase (e.g., `UserProfile.tsx`)
+- File naming: match component name exactly
+- Use functional components only (no class components)
+- Keep components small and focused (Single Responsibility Principle)
+- Extract reusable logic into custom hooks
+- Use composition over inheritance
+
+**Import Order (strict):**
+
+1. React imports
+2. Next.js imports
+3. Third-party library imports (with blank line before)
+4. Local imports - absolute paths with `@/` prefix (with blank line before)
+5. Relative imports (with blank line before)
+6. Type-only imports last: `import type { ... }`
+
+**Example:**
+
+```typescript
+'use client'
+
+import { useState, useCallback } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+
+import { Button } from '@/components/ui/button'
+import { UserProfile } from '@/components/user/UserProfile'
+
+import type { User } from '@/types/user'
+```
+
+## 5. Tailwind CSS v4 Conventions & Best Practices
+
+**Semantic Tokens (REQUIRED):**
+
+- Use semantic design tokens instead of direct color values
+- Preferred tokens: `bg-card`, `bg-card-page`, `text-default`, `color-text-default`, `bg-background`, `text-foreground`, `text-card-foreground`
+- Current available tokens: `bg-card`, `text-foreground`, `bg-background`, `text-card-foreground`, `bg-primary`, `text-primary-foreground`, `bg-secondary`, `text-muted-foreground`, etc. (see `globals.css`)
+- If using tokens like `bg-card-page` or `color-text-default` that don't exist, define them in `globals.css` first before using
+- AVOID using `bg-(--color-3)` or `bg-[var(--color-3)]` - use semantic tokens instead
+- When in doubt, check `src/app/globals.css` for available semantic tokens
+- Semantic tokens support theming (light/dark mode) automatically
+
+**Performance & Bundle Size:**
+
+- Tailwind CSS v4 uses PostCSS plugin - ensure proper purge configuration
+- Use utility classes over custom CSS (reduces bundle size)
+- Avoid creating arbitrary values when standard utilities exist
+- Use `@apply` sparingly - only for repeated patterns in component libraries
+- Prefer composition over custom CSS: combine utilities instead of writing new CSS
+
+**Responsive Design:**
+
+- Mobile-first approach: base styles for mobile, then `md:`, `lg:`, `xl:`, `2xl:` breakpoints
+- Use breakpoint prefix only when necessary: `md:text-lg` not `text-base md:text-lg` if base is already correct
+- Test on multiple screen sizes
+
+**Best Practices:**
+
+- Fix linter warnings immediately:
+  - `translate-x-[-100%]` → `-translate-x-full`
+  - `leading-[0]` → `leading-0`
+  - `h-[1px]` → `h-px`
+  - `w-[0px]` → `w-0`
+- Use descriptive class names, avoid magic numbers when standard utilities exist
+- Group related utilities logically (layout → spacing → typography → colors → effects)
+- Use design system spacing scale: prefer `space-y-4` over `space-y-[16px]`
+- Use `@layer` directives for custom utilities if needed
+
+## 6. Performance Optimization Best Practices
+
+**React Performance:**
+
+- Use `React.memo()` for components that re-render frequently with same props
+- Use `useMemo()` for expensive computations (only when computation cost > memoization overhead)
+- Use `useCallback()` for functions passed to child components to prevent re-renders
+- AVOID premature optimization - profile first, then optimize
+- When to use `useMemo`/`useCallback`:
+  - Component receives same props but re-renders unnecessarily
+  - Expensive calculations that don't need to run every render
+  - Functions passed to memoized child components
+  - Dependencies in other hooks that would cause infinite loops
+- When NOT to use: Simple calculations, primitives, stable references
+
+**Bundle Size Optimization:**
+
+- Import only what you need: `import { debounce } from 'lodash-es/debounce'` not `import _ from 'lodash'`
+- Use tree-shaking friendly imports
+- Check bundle analyzer: `ANALYZE=true yarn build`
+- Lazy load heavy components and libraries
+- Remove unused dependencies regularly
+
+**Rendering Optimization:**
+
+- Minimize re-renders by lifting state appropriately
+- Use `key` prop correctly - stable, unique keys for lists
+- Avoid creating objects/arrays in render: move to state, useMemo, or outside component
+- Use CSS for animations over JavaScript when possible
+- Debounce/throttle event handlers for scroll, resize, input
+
+## 7. Code Quality Standards & ESLint/Prettier
+
+**Linting (REQUIRED):**
+
+- Run `yarn lint` before committing - must pass with 0 warnings/errors
+- Fix all ESLint warnings immediately - no exceptions
+- Use ESLint recommended rules for React, TypeScript, Next.js
+- Enable `eslint-plugin-unused-imports` - remove unused imports
+- Enable `eslint-plugin-react-hooks` - follow Rules of Hooks
+- No `console.log` in production code - use proper logging solution
+- No commented-out code - remove or explain why it's needed
+
+**Prettier Formatting:**
+
+- Attributes on separate lines for img tags (when multiple attributes)
+- 2 spaces indentation (project default)
+- Single quotes for JavaScript/TypeScript strings
+- Trailing commas in multi-line objects/arrays
+- Semicolons required
+- Max line length: follow project settings (typically 80-100)
+
+**Error Handling:**
+
+- Always handle potential errors gracefully
+- Use try-catch for async operations
+- Provide user-friendly error messages
+- Log errors appropriately (client-side vs server-side)
+- Use Error Boundaries for React component errors
+- Validate user input and API responses
+
+**Type Safety:**
+
+- No `any` types without explicit justification and comment
+- Use type guards for runtime type checking
+- Validate API responses with Zod or similar
+- Use discriminated unions for complex state
+- Leverage TypeScript's strict mode fully
+
+**Testing Considerations:**
+
+- Write testable code (pure functions when possible)
+- Keep business logic separate from UI logic
+- Use dependency injection for better testability
+
+## 8. Clean Code Principles
+
+**SOLID Principles:**
+
+- **Single Responsibility**: Each component/function should do one thing well
+- **Open/Closed**: Open for extension, closed for modification - use composition
+- **Liskov Substitution**: Subtypes must be substitutable for their base types
+- **Interface Segregation**: Prefer specific interfaces over general ones
+- **Dependency Inversion**: Depend on abstractions, not concretions
+
+**DRY (Don't Repeat Yourself):**
+
+- Extract repeated logic into reusable functions/components
+- Use custom hooks for shared stateful logic
+- Create utility functions for common operations
+- But don't over-abstract - balance DRY with readability
+
+**KISS (Keep It Simple, Stupid):**
+
+- Prefer simple, readable solutions over clever ones
+- Write code that a junior developer can understand
+- Avoid premature optimization
+- Choose the simplest solution that works
+
+**Component Design:**
+
+- Keep components small and focused (50-100 lines max, split if larger)
+- One component per file (except closely related sub-components)
+- Props should be minimal and well-typed
+- Use composition over props drilling
+- Prefer explicit over implicit behavior
+
+**Naming Conventions:**
+
+- Use descriptive names: `getUserProfile` not `getUser` if it's profile-specific
+- Boolean variables: prefix with `is`, `has`, `should`: `isLoading`, `hasError`
+- Event handlers: prefix with `handle`: `handleSubmit`, `handleClick`
+- Functions: verb + noun: `fetchUserData`, `validateEmail`
+- Components: PascalCase nouns: `UserProfile`, `NavigationBar`
+- Files: match component/export name exactly
+
+## 9. Common Mistakes to Avoid
+
+**Critical Mistakes:**
+
+- DON'T add new assets without checking if similar assets already exist
+- DON'T use `bg-(--color-3)` or `bg-[var(--color-3)]` - use semantic tokens like `bg-card-page`, `color-text-default`
+- DON'T use absolute positioning without considering container height
+- DON'T use hash-based asset names
+- DON'T ignore linting warnings
+- DON'T forget to verify imports after renaming files
+- DON'T use `static` positioning when element needs to flow above others
+- DON'T forget z-index when layering elements
+
+**React Mistakes:**
+
+- DON'T use hooks conditionally or in loops (Rules of Hooks)
+- DON'T mutate state directly: `state.push(item)` ❌, use `setState([...state, item])` ✅
+- DON'T forget dependency arrays in useEffect, useMemo, useCallback
+- DON'T create components inside render functions
+- DON'T use Client Components when Server Components would work
+- DON'T fetch data in Client Components when Server Components can do it
+- DON'T use `<a>` tags for internal navigation - use Next.js `Link`
+- DON'T forget `alt` text on images (accessibility)
+
+**i18n Mistakes (CRITICAL):**
+
+<!-- - DON'T hardcode any user-facing text in components - ALWAYS use `t('translation.key')` -->
+
+- DON'T forget to update TypeScript types when adding new translation keys
+- DON'T create translation keys without proper hierarchy - use `"section.subsection.key"` format
+
+**TypeScript Mistakes:**
+
+- DON'T use `any` type - use `unknown` and narrow it
+- DON'T ignore TypeScript errors - fix them properly
+- DON'T use type assertions (`as`) when type guards would work
+- DON'T create overly complex type definitions - simplify when possible
+
+**Performance Mistakes:**
+
+- DON'T overuse `useMemo`/`useCallback` - profile first
+- DON'T create objects/arrays in render without memoization when passed as props
+- DON'T use inline functions in JSX for frequently re-rendered components
+- DON'T forget to add keys to list items
+- DON'T import entire libraries when only one function is needed
+
+**MCP Usage Mistakes:**
+
+- DON'T use web search when Context7 MCP or Figma Desktop MCP is available
+- DON'T assume library documentation without checking Context7 MCP first
+- DON'T manually implement Figma designs without using Figma Desktop MCP
+- DON'T skip MCP verification - verify MCP results match project patterns
+
+## 10. MCP (Model Context Protocol) Usage & Preferences
+
+**MCP Priority (REQUIRED):**
+
+- ALWAYS prefer using MCPs (Model Context Protocol) when available for external resources
+- If an MCP is needed but not available, search the web for available MCP servers, add them if appropriate, and use them
+- MCPs provide real-time, up-to-date information and reduce hallucinations
+
+**Preferred MCPs:**
+
+- **Context7 MCP**: Use for library documentation, framework best practices, and code examples
+  - Query React, Next.js, TypeScript, and other library documentation
+  - Use `mcp_context7_query-docs` for up-to-date API references and examples
+  - Use `mcp_context7_resolve-library-id` to find correct library IDs first
+  - Preferred over web searches for official documentation
+
+- **Figma Desktop MCP**: Use for Figma design implementation
+  - Use `mcp_Figma_Desktop_get_design_context` to get UI code from Figma designs
+  - Use `mcp_Figma_Desktop_get_screenshot` for visual references
+  - Use `mcp_Figma_Desktop_get_variable_defs` for design tokens
+  - Always extract node IDs from Figma URLs when provided
+
+**MCP Usage Workflow:**
+
+1. Check if an MCP exists for the task (Context7 for docs, Figma for designs)
+2. If MCP exists, use it instead of web search or assumptions
+3. If MCP doesn't exist but would be helpful, search web for available MCPs
+4. If appropriate, add the MCP to the project configuration
+5. Use MCP for the task
+
+**When to Use MCPs vs Web Search:**
+
+- Use Context7 MCP: Library/framework documentation, API references, code examples
+- Use Figma Desktop MCP: Design implementation, extracting design tokens, getting UI code
+- Use Web Search: Latest news, non-documentation queries, MCP availability research
+- Use Codebase Search: Project-specific patterns, existing implementations
+
+## 11. Cursor AI Best Practices
+
+**Prompting Guidelines:**
+
+- Be specific about requirements - don't assume context
+- Mention file paths when referring to specific files
+- Specify exact behavior expected, not just "fix this"
+- When asking for changes, mention if other files need updates
+- Ask for verification steps after implementation
+- Request explanations for complex logic
+
+**Context Management:**
+
+- Reference specific line numbers when pointing to issues
+- Include error messages in full when reporting bugs
+- Mention related files that might be affected
+- Provide examples of expected vs actual behavior
+
+**Code Generation:**
+
+- Request code that follows project conventions
+- Ask for TypeScript types/interfaces when needed
+- Request error handling for edge cases
+- Ask for comments on complex logic
+- Request performance considerations for optimizations
+
+**File Operations:**
+
+- Always verify imports when creating new files
+- Check for existing similar implementations before creating new ones
+- Update related configuration files (e.g., barrel exports)
+- Consider impact on build size when adding dependencies
+
+**MCP Integration:**
+
+- When implementing from Figma designs, use Figma Desktop MCP first
+- When referencing library documentation, use Context7 MCP first
+- Always verify MCP results match project patterns before implementing
+
+## 12. File Organization
+
+**Directory Structure:**
+
+- Components: `src/components/` organized by feature/page (e.g., `components/about/`, `components/landing/`)
+- Config: `src/config/` for configuration objects (non-component data)
+- Utils: `src/utils/` for pure utility functions (no React dependencies)
+- Types: `src/types/` for shared TypeScript type definitions
+- Hooks: `src/hooks/` for custom React hooks
+- Features: `src/features/` for feature-specific logic (Redux slices, etc.)
+
+**File Naming:**
+
+- Components: `ComponentName.tsx` (PascalCase matching component name)
+- Utilities: `utilityName.ts` (camelCase)
+- Types: `types.ts` or `types/featureName.ts`
+- Config: `featureConfig.ts` or `feature.config.ts`
+- Constants: `constants.ts` or `feature.constants.ts`
+
+**Barrel Exports:**
+
+- Use `index.ts` files for cleaner imports: `export { Component } from './Component'`
+- Group related exports together
+- Avoid deep nesting in imports - use barrel exports
+
+## 13. Before Committing Checklist
+
+**Code Quality:**
+
+- [ ] Run `yarn lint` - no errors/warnings (0 warnings required)
+- [ ] Run `npx tsc --noEmit` - no TypeScript errors
+- [ ] All imports work correctly (verify paths)
+- [ ] No unused imports (ESLint should catch)
+- [ ] No console.log statements left in code
+
+<!-- **Internationalization (i18n):**
+
+- [ ] ALL user-facing text uses `t('translation.key')` - NO hardcoded strings
+- [ ] English translations added to `public/locales/en/common.json`
+- [ ] Translation keys added to TypeScript types in `src/hooks/useTranslation.ts` -->
+
+**Functionality:**
+
+- [ ] Verify all imports work correctly
+- [ ] Ensure images are not clipped (check overflow)
+- [ ] Verify asset paths are correct (all assets load)
+- [ ] Test responsive design (mobile/desktop breakpoints)
+- [ ] Check z-index layering is correct (elements appear in right order)
+
+**Performance:**
+
+- [ ] Check bundle size impact (if adding dependencies)
+- [ ] Verify lazy loading is used for heavy components
+- [ ] Check for unnecessary re-renders (React DevTools Profiler)
+- [ ] Images optimized
+
+**Accessibility:**
+
+- [ ] All images have `alt` text
+- [ ] Interactive elements are keyboard accessible
+- [ ] Proper ARIA labels where needed
+- [ ] Color contrast meets WCAG standards
+
+**Documentation:**
+
+- [ ] Complex logic has comments explaining why
+- [ ] Component props are documented with JSDoc if complex
+- [ ] Type definitions are clear and self-documenting
+
+## 14. Additional Best Practices
+
+**Accessibility (a11y):**
+
+- Always include `alt` text on images (empty `alt=""` only for decorative images)
+- Use semantic HTML elements (`<nav>`, `<main>`, `<article>`, `<section>`)
+- Ensure keyboard navigation works (tab order, focus states)
+- Use ARIA labels when semantic HTML isn't sufficient
+- Test with screen readers for critical user flows
+- Maintain color contrast ratios (WCAG AA minimum)
+
+**Security:**
+
+- Never commit API keys, secrets, or sensitive data
+- Sanitize user input to prevent XSS attacks
+- Use environment variables for configuration
+- Validate and sanitize data from external sources
+- Use HTTPS for all external requests
+- Implement proper authentication/authorization
+
+**Error Handling:**
+
+- Use Error Boundaries for component-level error handling
+- Provide fallback UI for error states
+- Log errors appropriately (client vs server)
+- Show user-friendly error messages
+- Never expose stack traces to users in production

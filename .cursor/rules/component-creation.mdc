@@ -1,0 +1,47 @@
+---
+alwaysApply: true
+---
+
+# Component Creation Guidelines
+
+## Design System Integration
+
+### 1. Token Usage Rules
+
+- **Prefer Utility Classes**: Use `bg-tab-background` instead of `bg-[var(--color-tab-background)]`
+- **Clean Syntax**: Avoid verbose CSS variable syntax
+- **Token Mapping**: Map design tokens to Tailwind utilities
+- **Component-Specific Tokens**: Always check for component-specific token files (e.g., `tabs.css`, `select.css`)
+
+### 2. Figma Integration
+
+- **Get Design First**: Always use Figma MCP tools to get design information
+- **Extract Tokens**: Use `mcp_Figma_get_variable_defs` to get design tokens
+- **Verify Design**: Use `mcp_Figma_get_screenshot` to verify visual requirements
+- **Map Components**: Use `mcp_Figma_add_code_connect_map` to connect Figma to code
+
+### 3. Style Organization
+
+- **Style Constants**: Organize styles in constants like `baseStyles`, `hoverStyles`, `selectedStyles`, `disabledStyles`
+- **Conditional Application**: Merge styles based on component state
+- **Hover Syntax**: Use `hover:bg-tab-hovered-background` for hover states
+- **Disabled States**: Don't use `disabled:` syntax - conditionally apply `disabledStyles` const instead
+
+## File Organization
+
+### 1. Default Location
+
+- **Path**: `design-system/components/[ComponentName]/`
+- **Structure**:
+  ```
+  ComponentName/
+  ├── ComponentName.tsx          # Main component
+  ├── ComponentName.types.ts     # TypeScript interfaces
+  └── index.ts                   # Exports
+  ```
+
+### 2. Import Patterns
+
+- **Design System**: Always use `@1stprotectorg/gladiator-ds
+- **App Modules**: Use `@/*` aliases for application code
+- **External Libraries**: Use direct imports

@@ -1,0 +1,198 @@
+---
+alwaysApply: true
+---
+
+## Security
+
+- No secrets or tokens in code.
+- Use HTTPS only. No mixed content.
+- Auth: OIDC/PKCE. Do not store JWT in localStorage. Use httpOnly cookies.
+- Avoid `eval`, `innerHTML`, or unsafe DOM.
+- Sanitize untrusted HTML with DOMPurify.
+- Validate all inputs with `zod` and revalidate on backend.
+
+---
+
+## Accessibility (WCAG 2.2 AA)
+
+- Semantic HTML, ARIA where needed.
+- Keyboard support, focus indicators, skip links.
+- RTL + LTR supported; set `<html dir>` dynamically.
+- Automated checks: axe-core in CI.
+
+---
+
+## Performance Budgets
+
+- P95 cold load: < 2s
+- Initial JS: ≤ 180KB gzip
+- Route chunk: ≤ 120KB gzip
+- Use `React.lazy` and code-splitting for heavy routes.
+- Optimize images; memoize expensive renders.
+- Run Lighthouse audits on every release.
+
+---
+
+## Testing
+
+- Unit: Vitest/Jest + React Testing Library
+- E2E: Playwright
+- Accessibility: jest-axe
+- Minimum 80% coverage for critical modules
+
+---
+
+## Code Style & Structure
+
+- TypeScript only, functional components
+- ESLint + Prettier + `tsc --noEmit` in CI
+- Absolute imports (`@/*`, `@1stprotectorg/gladiator-ds'@1stprotectorg/gladiator-ds'`
+  - ✅ `import { cn } from '@1stprotectorg/gladiator-ds'`
+  - ❌ `import { Button } from '../../components/Button'`
+  - ❌ `import { cn } from '../utils/classNames'`
+- **App Module Imports**: Use `@/*` alias for application code
+  - ✅ `import { api } from '@/services/api'`
+  - ✅ `import { useAuth } from '@/hooks/useAuth'`
+- **External Libraries**: Use direct imports
+  - ✅ `import React from 'react'`
+  - ✅ `import { ChevronDown } from 'lucide-react'`
+
+#### Component Structure & Files
+
+- **Component folder structure**: `ComponentName/ComponentName.tsx`, `ComponentName.types.ts`, `index.ts`
+- **Always add `testId?: string` prop** to all design system components
+- **Auto-generate testId** with format: `component-${variant}-${size}` (e.g., `button-primary-md`)
+- **Use `data-testid`** attribute for testing: `data-testid={testId || \`component-${variant}-${size}\`}`
+- **Include sub-elements** with specific testIds (e.g., `tag-critical-label`, `tag-critical-icon`)
+- **Export from main index**: Add component to `design-system/components/index.ts`
+
+#### Figma Design Integration
+
+- **1:1 Figma accuracy**: Match design specifications exactly (colors, spacing, typography, states)
+- **Use design tokens**: Always use existing CSS custom properties from `tokens-root.css` and `tokens-dark.css`
+- **Transform Figma tokens**: Convert Figma design tokens to Tailwind CSS classes
+- **Static CSS classes**: Prefer static CSS classes over dynamic styling
+- **Verify all states**: Default, Empty, Hover, Focus, Disabled, Error states must match Figma
+
+#### Icons & Visual Elements
+
+- **Always use Lucide React icons** for all iconography - no custom SVGs or other icon libraries
+- **Import icons individually** from `lucide-react` to optimize bundle size
+- **Consistent icon sizing**: Use `h-4 w-4` for standard icons, `h-5 w-5` for larger contexts
+- **Icon positioning**: Proper spacing and alignment with text content
+
+#### Animations & Transitions
+
+- **Consistent transitions**: All components use `duration-300 ease-in-out` for state changes
+- **Scaling effects**: Hover `scale-[1.01]`, Focus `scale-[1.02]`, Active `scale-95` (buttons)
+- **Shadow effects**: Hover `shadow-md`, Focus `shadow-lg`
+- **Minimal error animations**: No pulse or color-changing animations on error states
+- **Smooth state changes**: All hover, focus, and state transitions must be smooth
+
+#### Storybook Integration
+
+- **Story location**: Create stories in `design-system/stories/ComponentName/` folder
+- **Comprehensive stories**: All variants, sizes, states, and use cases
+- **Interactive examples**: Click-to-copy JSX snippets for developers
+- **Figma showcase**: Include Figma-inspired comprehensive examples
+- **Documentation**: Clear descriptions and usage examples
+
+#### TypeScript & Props
+
+- **Extend HTML attributes**: Use `extends` with proper HTML element attributes
+- **Omit conflicting props**: Remove `size` from HTML attributes when using custom size prop
+- **Forward refs**: Use `forwardRef` for all form elements and interactive components
+- **Comprehensive types**: Include all necessary props with proper typing
+- **Optional props**: Make non-essential props optional with sensible defaults
+
+#### Styling & CSS
+
+- **Tailwind classes**: Use Tailwind utility classes for styling
+- **Design system tokens**: Use `--input-*`, `--button-*`, etc. CSS custom properties
+- **Responsive design**: Ensure components work across all screen sizes
+- **Dark mode support**: Use design tokens that support both light and dark themes
+- **Consistent spacing**: Follow design system spacing patterns (`--small`, `--medium`, etc.)
+
+#### Component States
+
+- **Default state**: Normal appearance with placeholder text
+- **Empty state**: Grayed placeholder text (`text-input-disabled-text`)
+- **Hover state**: Subtle scaling and shadow effects
+- **Focus state**: Enhanced scaling, shadow, and focus ring
+- **Disabled state**: Reduced opacity and disabled cursor
+- **Error state**: Red border and text, with same hover/focus transitions
+
+#### Quality Assurance
+
+- **ESLint compliance**: All code must pass ESLint checks
+- **TypeScript safety**: No type errors, full type safety
+- **Accessibility**: Proper ARIA labels, keyboard navigation, focus management
+- **Performance**: Optimized with proper React patterns and memoization where needed
+- **Testing**: Include comprehensive test coverage for all component states
+
+---
+
+## Internationalization
+
+- `react-i18next` for all strings
+- No hard-coded text
+- **Use dot notation for i18next translation keys** (e.g., `feature.component.action.label`)
+- Key format: `feature.component.action.label`
+- Slack notification on translation file changes
+- Always use `yarn` for installation and running commands.
+
+---
+
+## CI/CD
+
+- Jobs: typecheck, lint, unit, E2E, build, audit, madge
+- Build passes only if all checks succeed
+- **Default Git branch is "main"** - CI jobs for translations should only run on push to main, not on pull requests
+- Slack notifications on failure
+
+---
+
+## Analytics & Logging
+
+- **Always use the centralized Logger** for all analytics and logging
+- **Import from `@/utils/logger`** - never use direct analytics calls
+- **Use event constants** from `BUSINESS_EVENTS`, `USER_INTERACTION_EVENTS`, `SYSTEM_EVENTS`
+- **Follow analytics rules** - See `.cursor/rules/analytics-logging.mdc` for detailed guidelines
+
+---
+
+## Documentation & Communication
+
+### When to Create MD Files
+
+- **❌ AVOID creating summary/analysis MD files** - Prefer showing explanations in chat
+- **❌ DO NOT create** `OPTIMIZATION_SUMMARY.md`, `BUNDLE_ANALYSIS.md`, or similar analysis files
+- **❌ DO NOT create** temporary documentation for investigations or optimizations
+- **✅ ONLY create MD files when**:
+  - User explicitly asks for documentation
+  - Documenting a complex feature/flow that needs permanent reference
+  - Adding to existing `/docs` folder for team knowledge base
+  - Creating technical specifications or architecture decision records (ADRs)
+  - Adding API documentation or integration guides
+
+### Communication Guidelines
+
+- **Prefer inline chat responses** with clear, structured explanations
+- Use **code blocks and examples** in chat instead of creating files
+- Provide **actionable summaries** at the end of tasks in chat
+- Only create files that serve a **long-term purpose** for the team
+- Delete any temporary analysis files after completing the work
+
+---
+
+## Definition of Done
+
+- ✅ Tests (unit, E2E, a11y) pass
+- ✅ Types are safe
+- ✅ i18n keys added
+- ✅ Storybook updated
+- ✅ Performance budgets respected
+- ✅ No new deps without justification
+- ✅ Docs updated (only when necessary and requested)
+- ✅ Analytics events use centralized Logger with constants
+- ✅ No temporary MD files left in repository

@@ -1,0 +1,411 @@
+---
+alwaysApply: true
+---
+
+# Story Creation Guidelines
+
+## Component Creation Rules
+
+### 1. No Example Files
+
+- ❌ Don't create `ComponentName.example.tsx` files
+- ✅ Only create the essential component files
+- ✅ Use Storybook for testing and examples
+
+### 2. Shadcn Component Organization
+
+- After installing shadcn components, move them to their own folder
+- Use **camelCase** folder naming
+- Example: `dropdown-menu.tsx` → `DropdownMenu/` folder
+
+### 3. File Structure Pattern
+
+```
+ComponentName/
+├── ComponentName.tsx          # Main component
+├── ComponentName.types.ts     # TypeScript interfaces
+└── index.ts                   # Exports
+```
+
+## Story Structure Pattern
+
+### 1. Required Imports
+
+```tsx
+import type { Meta, StoryObj } from '@storybook/react-vite'
+import { CopyButton } from '../../../.storybook/components/CopyButton'
+import { StoryLayout } from '../../../.storybook/components/StoryLayout'
+import { [ComponentName] } from '../../components/[ComponentName]/[ComponentName]'
+import { Card, CardContent, CardHeader, CardTitle } from '@1stprotectorg/gladiator-ds'
+// IMPORTANT: Always use Lucide React icons - import individually
+import { Save, Edit, Trash2, Download, Share, ChevronDown } from 'lucide-react'
+```
+
+### 1.1. Story Structure with StoryLayout
+
+**CRITICAL: React Hooks Usage**
+
+When using React hooks (useState, useEffect, etc.) in stories, you MUST wrap them in a proper React component function to avoid the "React Hook is called in function 'render'" error.
+
+```tsx
+// ❌ WRONG - Hooks directly in render function
+export const [ComponentName]Showcase: Story = {
+  render: () => {
+    const [state, setState] = useState('') // This will cause an error!
+    return <Component />
+  },
+}
+
+// ✅ CORRECT - Hooks wrapped in component function
+function [ComponentName]ShowcaseComponent() {
+  const [state, setState] = useState('')
+
+  return (
+    <StoryLayout
+      title="[ComponentName] showcase"
+      description="Minimal description of the component and its purpose."
+    >
+      <div className="w-full space-y-6">
+        {/* Card 1 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-foreground">Card Title</CardTitle>
+              <Button variant="secondary" onClick={() => navigator.clipboard.writeText(code)}>
+                Copy usage
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Component content */}
+          </CardContent>
+        </Card>
+
+        {/* Documentation Section */}
+        <Card className="mb-12">
+          <CardHeader>
+            <CardTitle className="text-foreground">Documentation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Documentation content */}
+          </CardContent>
+        </Card>
+      </div>
+    </StoryLayout>
+  )
+}
+
+export const [ComponentName]Showcase: Story = {
+  render: () => <[ComponentName]ShowcaseComponent />,
+}
+```
+
+### 2. Story Organization
+
+- **Single Showcase Story**: `[ComponentName]Showcase` (not multiple stories)
+- **StoryLayout Title**: **MUST include "showcase"** - `title="[ComponentName] showcase"`
+- **Card-based Sections**: Each variant/state in its own Card
+- **Copy Strategy**: Always use copy usage button in top right corner (secondary button in card header)
+- **Layout**: Use `w-full space-y-6` for full-width cards on separate lines
+
+### 2.1. React Hooks Pattern
+
+**ALWAYS follow this pattern when using hooks in stories:**
+
+```tsx
+// 1. Create a component function that uses hooks
+function [ComponentName]ShowcaseComponent() {
+  const [state, setState] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  // All hook logic here
+  useEffect(() => {
+    // Effect logic
+  }, [])
+
+  return (
+    <StoryLayout title="[ComponentName] showcase" description="...">
+      {/* Your story content */}
+    </StoryLayout>
+  )
+}
+
+// 2. Export the story that renders the component
+export const [ComponentName]Showcase: Story = {
+  render: () => <[ComponentName]ShowcaseComponent />,
+}
+```
+
+**Key Rules:**
+
+- ✅ **ALWAYS** wrap hooks in a component function
+- ✅ **NEVER** call hooks directly in the `render` function
+- ✅ **USE** descriptive component names ending with "Component"
+- ✅ **SEPARATE** interactive examples into their own component functions if needed
+
+### 2.2. Common Hook Patterns in Stories
+
+**Interactive Examples with State:**
+
+```tsx
+function InteractiveExample() {
+  const [selectedValue, setSelectedValue] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div>
+      <Select
+        value={selectedValue}
+        onValueChange={setSelectedValue}
+      />
+      {selectedValue && <p>Selected: {selectedValue}</p>}
+    </div>
+  )
+}
+
+// Use in story
+export const [ComponentName]Showcase: Story = {
+  render: () => <InteractiveExample />,
+}
+```
+
+**Multiple Interactive Examples:**
+
+```tsx
+function [ComponentName]ShowcaseComponent() {
+  return (
+    <StoryLayout title="[ComponentName] showcase" description="...">
+      <div className="w-full space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Example</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BasicExample />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Advanced Example</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AdvancedExample />
+          </CardContent>
+        </Card>
+      </div>
+    </StoryLayout>
+  )
+}
+
+function BasicExample() {
+  const [value, setValue] = useState('')
+  return <Component value={value} onChange={setValue} />
+}
+
+function AdvancedExample() {
+  const [state, setState] = useState({ value: '', loading: false })
+  return <Component {...state} onChange={setState} />
+}
+```
+
+### 3. Story Sections to Include
+
+- **Based on Component Variants**: Include ALL variants in separate cards
+- **Documentation Section**: Props, usage examples
+
+### 4. Meta Configuration
+
+```tsx
+const meta: Meta<typeof [ComponentName]> = {
+  title: 'Design System/Components/[ComponentName]',
+  component: [ComponentName],
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component: 'Description of the component...',
+      },
+    },
+  },
+  argTypes: {
+    // Add relevant argTypes based on component props
+  },
+}
+```
+
+### 5. Copy Usage Implementation
+
+**Always use copy usage button in top right corner:**
+
+```tsx
+<Card>
+  <CardHeader>
+    <div className="flex items-center justify-between">
+      <CardTitle>Component Name</CardTitle>
+      <Button
+        variant="secondary"
+        onClick={() => navigator.clipboard.writeText(code)}
+      >
+        Copy usage
+      </Button>
+    </div>
+  </CardHeader>
+  <CardContent>
+    <[ComponentName] prop="value">Content</[ComponentName]>
+  </CardContent>
+</Card>
+```
+
+### 6. Code Reuse
+
+- **Reuse Code**: Usage example and copy button code should be the same
+- **No Duplication**: Don't duplicate code between examples and documentation
+- **Consistent Formatting**: Use same code format throughout
+
+## Design System Tokens
+
+### Token Usage Rules
+
+- **Prefer Utility Classes**: Use `bg-primary` instead of `bg-[var(--color-primary)]`
+- **Clean Syntax**: Avoid verbose CSS variable syntax
+- **Token Mapping**: Map design tokens to Tailwind utilities
+
+## Story File Structure
+
+### 1. File Location
+
+- **Path**: `design-system/stories/[ComponentName]/[ComponentName].stories.tsx`
+- **Single File**: Only one story file per component
+- **No Examples**: No `.example.tsx` files (testing is done in Storybook)
+
+### 2. Title Structure
+
+- **Always Use**: `'Design System/Components/[ComponentName]'`
+- **Consistent Pattern**: Follow this structure for all future components
+
+### 3. Icon Usage - CRITICAL
+
+- **MANDATORY**: Always use Lucide React icons - NEVER create custom SVG components
+- **Import Pattern**: `import { Save, Edit, Trash2, Download, Share } from 'lucide-react'`
+- **Usage**: `<Save className="h-4 w-4" />` - always include size classes
+- **NO CUSTOM ICONS**: Never create custom SVG components in stories
+- **Common Icons**: Save, Edit, Trash2, Download, Share, ChevronDown, Plus, Minus, Settings
+
+### 4. Component Usage - CRITICAL
+
+- **Tag Component**: Use `Tag` from `@1stprotectorg/gladiator-ds'@1stprotectorg/gladiator-ds'`
+  - `import { Badge } from '@1stprotectorg/gladiator-ds'`
+- **Usage**:
+  - `<Tag type={TagTypes.Tag} variant={TagVariants.Ok} label="Active" />`
+  - `<Badge variant="status" status="Active" severity="good" />`
+
+## Documentation Section
+
+### 1. Required Documentation
+
+```tsx
+{
+  /* Documentation Section */
+}
+;<Card className="mb-12">
+  <CardHeader>
+    <CardTitle className="text-foreground">Documentation</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <h3 className="mb-4 text-lg font-semibold">[ComponentName] Component</h3>
+    <p className="mb-4">
+      Brief description of what the component does and when to use it.
+    </p>
+
+    <h4 className="mb-3 font-semibold">Props:</h4>
+    <ul className="mb-4 space-y-2">
+      <li>
+        <code className="rounded bg-gray-100 px-2 py-1">prop1 (type)</code>:
+        Description of what this prop does
+      </li>
+      <li>
+        <code className="rounded bg-gray-100 px-2 py-1">prop2 (type)</code>:
+        Description of what this prop does
+      </li>
+    </ul>
+
+    <h4 className="mb-3 font-semibold">Example Usage:</h4>
+    <pre className="overflow-x-auto rounded border bg-gray-100 p-3 text-sm">
+      <code>{`<[ComponentName] prop1="value" prop2={true}>
+  Content
+</[ComponentName]>`}</code>
+    </pre>
+  </CardContent>
+</Card>
+```
+
+## Placeholder Replacements
+
+- `[COMPONENT_NAME]` → Actual component name (e.g., "TextInput")
+- `[ComponentName]` → PascalCase component name (e.g., "TextInput")
+- `[component]` → lowercase component name (e.g., "text input")
+- `[ComponentName]Showcase` → Story export name (e.g., "TextInputShowcase")
+
+## Important Notes
+
+- **Single Story**: If story file exists with multiple stories, remove ALL and replace with single showcase
+- **Copy Strategy**: Always use copy usage button in top right corner of each card
+- **Story Location**: All stories in `/design-system/stories/` directory
+- **Documentation**: Add documentation section explaining component and props in simple text
+- **Import Paths**: Always use alias imports (`@1stprotectorg/gladiator-ds't run dev or storybook processes (user handles these)
+- **Shadcn Organization**: Move shadcn components to proper folder structure after installation
+
+## Pre-Creation Checklist
+
+Before creating any story, verify:
+
+- [ ] Using Lucide React icons (NOT custom SVG components)
+- [ ] Icons imported individually: `import { Save, Edit, Trash2 } from 'lucide-react'`
+- [ ] Icons include size classes: `<Save className="h-4 w-4" />`
+- [ ] Single showcase story structure
+- [ ] **StoryLayout title includes "showcase"**: `title="[ComponentName] showcase"`
+- [ ] Copy usage button in top right corner of each card
+- [ ] Documentation section included
+- [ ] All variants covered in separate cards
+- [ ] **React hooks wrapped in component functions** (CRITICAL for useState, useEffect, etc.)
+- [ ] **No hooks called directly in render function**
+
+## Troubleshooting
+
+### React Hooks Error
+
+**Error:** `React Hook "useState" is called in function "render" that is neither a React function component nor a custom React Hook function`
+
+**Solution:** Wrap all hook usage in a proper React component function:
+
+```tsx
+// ❌ WRONG - Causes the error
+export const MyStory: Story = {
+  render: () => {
+    const [state, setState] = useState('') // ERROR!
+    return <Component />
+  },
+}
+
+// ✅ CORRECT - Fixes the error
+function MyStoryComponent() {
+  const [state, setState] = useState('') // Works!
+  return <Component />
+}
+
+export const MyStory: Story = {
+  render: () => <MyStoryComponent />,
+}
+```
+
+### Common Patterns That Need Component Wrapping
+
+- `useState()` - State management
+- `useEffect()` - Side effects
+- `useCallback()` - Memoized callbacks
+- `useMemo()` - Memoized values
+- `useRef()` - References
+- Any custom hooks
+
+**Remember:** If you're using ANY React hook in your story, you MUST wrap it in a component function!
