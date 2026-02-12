@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    locale: 'en_GB',
+    locale: 'en_US',
     alternateLocale: 'he_IL',
     url: SITE_CONFIG.url,
     siteName: SITE_CONFIG.name,
@@ -45,10 +45,10 @@ export const metadata: Metadata = {
     description: SITE_CONFIG.description,
     images: [
       {
-        url: '/images/idan-levian-logo-white.svg',
-        width: 128,
-        height: 32,
-        alt: SITE_CONFIG.name,
+        url: '/images/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Idan Levian — Freelance React Developer',
       },
     ],
   },
@@ -56,6 +56,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: SITE_CONFIG.title,
     description: SITE_CONFIG.description,
+    images: ['/images/og-image.png'],
   },
   robots: {
     index: true,
